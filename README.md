@@ -62,3 +62,26 @@
 
 ## 자바 기반 스프링 프로젝트에 코틀린 적용
 
+1. Gradle Kotlin DSL
+   1. Gradle은 빌드 스크립트를 작성할 때 기본적으로Groovy 언어를 사용해 작성한다.
+   2. 익숙하지 않은 Groovy 대신 Kotlin 기반으로 빌드 스크립트를 작성할 수 있다.
+   3. Kotlin DSL로 Gradle 빌드 스크립트를 작성하면 IntelliJ, Android Studio와 같은 Jetbrains IDEA에서 코틀린 관련 지원을 받을 수 있다. (*자동완성, 컴파일 오류 체크 등*)
+   4. Kotlin DSL로 작성한 빌드 스크립트는 `.kts` 확장자를 가진다.
+      1. **KTS**: Kotlin Script의 약자이다.
+   5. Kotlin DSL로 작성된 빌드 스크립트는 순수 Groovy로 작성한 빌드 스크립트보단 조금 느린 건 사실이지만 점점 개선되고 있다.
+2. Spring 플러그인
+   1. 코틀린의 클래스는 기본적으로 `final` 즉, 상속이 불가능한 클래스이다.
+      1. 상속을 열어뒀을 때 발생하는 부작용으로 인해 코틀린은 상속이 꼭 필요한 경우에만 적용하도록 `open` 키워드를 사용해 상속을 허용하도록 지원한다.
+   2. 문제는 스프링은 기본적으로 `CGLIB 프록시`를 사용해 애노테이션이 붙은 클래스에 대한 프록시 객체를 생성하는데, CGLIB 프록시는 대상 객체를 상속하여 프록시 객체를 생성한다.
+      1. 코틀린의 클래스는 기본적으로 final이기 때문에 상속이 불가능해 프록시 객체를 생성할 수 없다.
+   3. 매번 open 키워드를붙이는 건 불편하므로 코틀린은 `All-open` 컴파일러 플러그인을 제공한다.
+      1. 매번 문제가 생길 때마다 allOpen에 추가하기 어려우므로 allOpen 플러그인을 래핑한 `kotlin-spring` 플러그인을 사용하면 매우 간편해진다.
+      2. kotlin-spring 플러그인은 스프링에서 CGLIB 프록시를 사용하는 모든 애노테이션에 대해 자동으로 open 처리를 해준다.
+         - `@Component`
+         - `@Transactional`
+         - `@Configuration`, `@Controller`, `@Service`, `@Repository` 등은 내부에 `@Component` 애노테이션을 메타-애노테이션으로 가지고 있다.
+3. JPA 플러그인
+   1. JPA에서 엔티티 클래스를 생성하려면 매개 변수가 없는 기본 생성자가 필요하다.
+      1. 코틀린은 매개 변수가 없는 기본 생성자를 자동으로 만들어주는 `no-arg` 컴파일러 플러그인을 제공한다.
+   2. JPA를 쓸 경우 Spring 플러그인과 마찬가지로 `kotlin-jpa` 플러그인을 제공한다.
+      1. JPA 플러그인을 쓰면 `@Entity`, `@Embeddable`, `@MappedSuperclass`에 대한 기본 생성자를 자동으로 생성해준다.
